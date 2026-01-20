@@ -32,7 +32,11 @@ jobs:
 
       - name: Build & Push Image
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/mua-backend:${{ github.sha }} .
+          docker build \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/mua-backend:latest \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/mua-backend:${{ github.sha }} \
+            .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/mua-backend:latest
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/mua-backend:${{ github.sha }}
 
       - name: Deploy to WAS
@@ -43,8 +47,8 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.WAS_SSH_PORT }}
           script: |
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/mua-backend:latest
             docker stop mua-backend || true
             docker rm mua-backend || true
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/mua-backend:${{ github.sha }}
             docker run -d -p 8080:8080 --name mua-backend \
-              ${{ secrets.DOCKERHUB_USERNAME }}/mua-backend:${{ github.sha }}
+              ${{ secrets.DOCKERHUB_USERNAME }}/mua-backend:latest
