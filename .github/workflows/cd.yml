@@ -32,10 +32,7 @@ jobs:
 
       - name: Build & Push Image
         run: |
-          docker build \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/mua-backend:latest \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/mua-backend:${{ github.sha }} \
-            .
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/mua-backend:latest -t ${{ secrets.DOCKERHUB_USERNAME }}/mua-backend:${{ github.sha }} .
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/mua-backend:latest
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/mua-backend:${{ github.sha }}
 
@@ -43,9 +40,9 @@ jobs:
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.WAS_HOST }}
-          username: ${{ secrets.WAS_USERNAME }}
+          username: ec2-user
           key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.WAS_SSH_PORT }}
+          port: 22
           script: |
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/mua-backend:latest
             docker stop mua-backend || true
