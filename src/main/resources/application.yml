@@ -1,0 +1,8 @@
+spring:
+  profiles:
+    active: dev
+    #    active: prod
+    include: security, swagger, S3
+
+server:
+  port: 8080
