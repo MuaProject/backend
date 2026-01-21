@@ -11,13 +11,13 @@ import java.net.URL;
 import java.util.Map;
 
 @RestController
-@RequestMapping
+@RequestMapping("/api/s3")
 @RequiredArgsConstructor
 public class S3Controller {
 
     private final S3Service s3Service;
 
-    @GetMapping("/presigned")
+    @GetMapping("/presigned-upload")
     public Map<String, String> getPreSignedUploadUrl(
             @RequestParam String type,
             @RequestParam String contentType
