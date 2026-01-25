@@ -21,13 +21,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 		OAuth2User oAuth2User = super.loadUser(userRequest);
 		// 여기서 사용자 정보 가공 또는 DB 저장 가능
         Map<String, Object> kakaoAccount = (Map<String, Object>) oAuth2User.getAttributes().get("kakao_account");
+        Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
         String email = (String) kakaoAccount.get("email");
+        String nickname = (String) profile.get("nickname");
         String providerId = oAuth2User.getName();
 
         Member member = memberRepository
                 .findByProviderAndProviderId(AuthProvider.KAKAO, providerId)
                 .orElseGet(() -> memberRepository.save(
-                        Member.createOAuthUser(email, AuthProvider.KAKAO, providerId)
+                        Member.createOAuthUser(email, nickname, AuthProvider.KAKAO, providerId)
                 ));
 
         return new CustomOAuth2User(member, oAuth2User.getAttributes());

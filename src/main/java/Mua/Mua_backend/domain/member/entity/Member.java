@@ -39,11 +39,13 @@ public class Member {
 
     public static Member createOAuthUser(
             String email,
+            String nickname,
             AuthProvider provider,
             String providerId
     ) {
         Member member = new Member();
         member.email = email;
+        member.nickname = nickname;
         member.provider = provider;
         member.providerId = providerId;
         member.role = Role.USER;
