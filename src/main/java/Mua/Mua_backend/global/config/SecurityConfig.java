@@ -1,5 +1,6 @@
 package Mua.Mua_backend.global.config;
 
+import Mua.Mua_backend.domain.member.repository.MemberRepository;
 import Mua.Mua_backend.global.security.jwt.JwtTokenFilter;
 import Mua.Mua_backend.global.security.jwt.JwtTokenUtil;
 import Mua.Mua_backend.global.security.oauth.CustomOAuth2UserService;
@@ -24,6 +25,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtTokenUtil jwtTokenUtil;
+    private final MemberRepository memberRepository;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
@@ -63,7 +65,7 @@ public class SecurityConfig {
                         headers.frameOptions(frame -> frame.disable())
                 )
                 // 로그인 이후 매 요청마다
-                .addFilterBefore(new JwtTokenFilter(jwtTokenUtil), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JwtTokenFilter(jwtTokenUtil, memberRepository), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
