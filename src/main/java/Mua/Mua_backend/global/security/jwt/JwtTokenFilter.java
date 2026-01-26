@@ -1,5 +1,7 @@
 package Mua.Mua_backend.global.security.jwt;
 
+import Mua.Mua_backend.domain.member.entity.Member;
+import Mua.Mua_backend.domain.member.repository.MemberRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -21,6 +23,7 @@ import java.util.List;
 public class JwtTokenFilter extends OncePerRequestFilter {
 
     private final JwtTokenUtil jwtTokenUtil;
+    private final MemberRepository memberRepository;
     private static final String TOKEN_COOKIE_NAME = "jwtToken";
 
     @Override
@@ -44,14 +47,15 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         // JWT에서 사용자 정보 추출
         Long memberId = jwtTokenUtil.getMemberId(token);
-        String role = jwtTokenUtil.getRole(token);
 
-        // 인증 객체 생성 (ROLE_ prefix 필수)
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("회원 정보가 존재하지 않습니다."));
+
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
-                        memberId,
+                        member,
                         null,
-                        List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                        List.of(new SimpleGrantedAuthority("ROLE_" + member.getRole().name()))
                 );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
