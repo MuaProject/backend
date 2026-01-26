@@ -8,9 +8,16 @@ import lombok.RequiredArgsConstructor;
 public enum ErrorCode {
 
     INVALID_INPUT(400, "잘못된 입력 값입니다."),
+    LOCATION_REQUIRED(400, "거리순 정렬을 위해 위치 정보가 필요합니다."),
+    NO_FEED_UPDATE_CONTENT_EXCEPTION(400, "수정할 내용이 없습니다."),
+
     UNAUTHORIZED(401, "인증이 필요합니다."),
     FORBIDDEN(403, "접근 권한이 없습니다."),
+    FEED_UPDATE_FORBIDDEN(403, "게시물을 수정할 권한이 없습니다."),
+
     NOT_FOUND(404, "존재하지 않는 리소스입니다."),
+    FEED_NOT_FOUND(404, "게시물을 찾을 수 없습니다."),
+
     INTERNAL_SERVER_ERROR(500, "서버 오류가 발생했습니다."),
 
     // example
