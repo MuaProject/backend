@@ -78,6 +78,7 @@ public class Feed extends BaseTimeEntity {
             Member writer
     ) {
         validatePlayDate(playDate);
+        validateLocation(latitude, longitude);
 
         this.writer = writer;
         this.image = image;
@@ -173,4 +174,14 @@ public class Feed extends BaseTimeEntity {
             throw new IllegalStateException("지난 날짜로는 일정 변경이 불가능합니다.");
         }
     }
+
+    private void validateLocation(Double latitude, Double longitude) {
+        if (latitude != null && (latitude < -90 || latitude > 90)) {
+            throw new IllegalStateException("위도 값이 올바르지 않습니다.");
+        }
+        if (longitude != null && (longitude < -180 || longitude > 180)) {
+            throw new IllegalStateException("경도 값이 올바르지 않습니다.");
+        }
+    }
+
 }
