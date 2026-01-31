@@ -1,5 +1,6 @@
 package Mua.Mua_backend.domain.participation.service;
 
+import Mua.Mua_backend.domain.comment.service.CommentService;
 import Mua.Mua_backend.domain.feed.entity.Feed;
 import Mua.Mua_backend.domain.feed.repository.FeedRepository;
 import Mua.Mua_backend.domain.member.entity.Member;
@@ -24,6 +25,7 @@ public class ParticipationService {
 
     private final ParticipationRepository participationRepository;
     private final FeedRepository feedRepository;
+    private final CommentService commentService;
 
     // 참가 신청
     public void apply(Long feedId, Member member) {
@@ -44,6 +46,9 @@ public class ParticipationService {
                 .build();
 
         participationRepository.save(participation);
+
+        String message = member.getNickname() + "님이 참가 신청했습니다.";
+        commentService.createSystemComment(feed.getId(), message);
     }
 
     // 참가자 전체 조회
