@@ -1,7 +1,5 @@
 spring:
   profiles:
-    #active: dev
-    active: prod
     include: security, swagger, s3
 
 server:
