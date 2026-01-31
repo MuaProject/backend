@@ -1,0 +1,5 @@
+spring:
+  swagger:
+    url: ${SWAGGER_SERVER_URL}
+    # http://서버IP:포트/swagger-ui/index.html
+    # API 요청을 받는 주소
