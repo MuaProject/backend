@@ -1,5 +1,6 @@
 package Mua.Mua_backend.global.exception;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -19,6 +20,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleGeneralException(Exception e) {
         return ResponseEntity
                 .status(500)
+                .header(HttpHeaders.CONTENT_TYPE, "application/json")
                 .body(new ErrorResponse(500, e.getMessage()));
     }
 }
