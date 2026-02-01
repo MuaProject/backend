@@ -2,6 +2,8 @@ package Mua.Mua_backend.global.security.jwt;
 
 import Mua.Mua_backend.domain.member.entity.Member;
 import Mua.Mua_backend.domain.member.repository.MemberRepository;
+import Mua.Mua_backend.global.exception.CustomException;
+import Mua.Mua_backend.global.exception.ErrorCode;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -41,15 +43,14 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         // JWT 검증 (서명 + 만료)
         if (!jwtTokenUtil.validateToken(token)) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired JWT");
-            return;
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
         }
 
         // JWT에서 사용자 정보 추출
         Long memberId = jwtTokenUtil.getMemberId(token);
 
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new RuntimeException("회원 정보가 존재하지 않습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
