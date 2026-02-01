@@ -36,6 +36,8 @@ out/
 ### VS Code ###
 .vscode/
 
+application.yml
+application-local.yml
 docker-compose.yml
 
 !ci.yml
