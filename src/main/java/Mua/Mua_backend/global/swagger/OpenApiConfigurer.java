@@ -21,8 +21,7 @@ public class OpenApiConfigurer {
         return new OpenAPI()
                 .info(createInfo())
                 .addSecurityItem(createSecurityRequirement())
-                .components(createComponents())
-                .servers(createServerList());
+                .components(createComponents());
     }
 
     private Info createInfo() {
@@ -45,12 +44,5 @@ public class OpenApiConfigurer {
                                 .scheme("bearer")
                                 .bearerFormat("JWT")
                                 .description("JWT 토큰을 입력하세요.(Bearer XXX)"));
-    }
-
-    private List<Server> createServerList() {
-        return List.of(
-                new Server().description("Production Server").url(baseUrl),
-                new Server().description("Local Server").url("http://localhost:8080")
-        );
     }
 }

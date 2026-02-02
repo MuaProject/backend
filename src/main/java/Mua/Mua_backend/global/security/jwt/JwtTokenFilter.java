@@ -43,14 +43,15 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         // JWT 검증 (서명 + 만료)
         if (!jwtTokenUtil.validateToken(token)) {
-            throw new CustomException(ErrorCode.INVALID_TOKEN);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired JWT");
+            return;
         }
 
         // JWT에서 사용자 정보 추출
         Long memberId = jwtTokenUtil.getMemberId(token);
 
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new RuntimeException("회원 정보가 존재하지 않습니다."));
 
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
