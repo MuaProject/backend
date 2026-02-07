@@ -4,8 +4,10 @@ import Mua.Mua_backend.domain.comment.service.CommentService;
 import Mua.Mua_backend.domain.feed.entity.Feed;
 import Mua.Mua_backend.domain.feed.repository.FeedRepository;
 import Mua.Mua_backend.domain.member.entity.Member;
+import Mua.Mua_backend.domain.participation.dto.response.MyParticipationResponse;
 import Mua.Mua_backend.domain.participation.dto.response.ParticipationResponse;
 import Mua.Mua_backend.domain.participation.entity.Participation;
+import Mua.Mua_backend.domain.participation.entity.ParticipationStatus;
 import Mua.Mua_backend.domain.participation.repository.ParticipationRepository;
 import Mua.Mua_backend.global.exception.feed.FeedNotFoundException;
 import Mua.Mua_backend.global.exception.feed.FeedUpdateForbiddenException;
@@ -13,9 +15,12 @@ import Mua.Mua_backend.global.exception.participation.AlreadyParticipatedExcepti
 import Mua.Mua_backend.global.exception.participation.ParticipationNotFoundException;
 import Mua.Mua_backend.global.exception.participation.SelfParticipationNotAllowedException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -55,7 +60,7 @@ public class ParticipationService {
     @Transactional(readOnly = true)
     public List<ParticipationResponse> getParticipations(Long feedId) {
         List<Participation> participations =
-                participationRepository.findByFeedId(feedId);
+                participationRepository.findByFeed_Id(feedId);
 
         return participations.stream()
                 .map(p -> new ParticipationResponse(
@@ -86,6 +91,53 @@ public class ParticipationService {
         validateWriter(participation, writer);
 
         participation.reject();
+    }
+
+    @Transactional(readOnly = true)
+    public List<MyParticipationResponse> getMyParticipations(
+            Member member,
+            String status,
+            LocalDateTime cursorTime,
+            Long cursorId,
+            int size
+    ) {
+        ParticipationStatus participationStatus =
+                (status == null) ? null : ParticipationStatus.valueOf(status);
+
+        Pageable pageable = PageRequest.of(0, size);
+
+        boolean hasCursor = cursorTime != null && cursorId != null;
+
+        List<Participation> participations;
+
+        if (!hasCursor) {
+            // 최초 조회
+            participations = (participationStatus == null)
+                    ? participationRepository
+                    .findByApplicant_IdOrderByCreatedAtDescIdDesc(
+                            member.getId(), pageable
+                    )
+                    : participationRepository
+                    .findByApplicant_IdAndStatusOrderByCreatedAtDescIdDesc(
+                            member.getId(), participationStatus, pageable
+                    );
+        } else {
+            // 다음 페이지
+            participations = (participationStatus == null)
+                    ? participationRepository
+                    .findNextPage(
+                            member.getId(), cursorTime, cursorId, pageable
+                    )
+                    : participationRepository
+                    .findNextPageWithStatus(
+                            member.getId(), participationStatus,
+                            cursorTime, cursorId, pageable
+                    );
+        }
+
+        return participations.stream()
+                .map(MyParticipationResponse::from)
+                .toList();
     }
 
     private void validateWriter(Participation participation, Member writer) {
