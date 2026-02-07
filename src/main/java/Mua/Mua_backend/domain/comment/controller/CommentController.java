@@ -1,5 +1,6 @@
 package Mua.Mua_backend.domain.comment.controller;
 
+import Mua.Mua_backend.domain.comment.controller.docs.CommentControllerDocs;
 import Mua.Mua_backend.domain.comment.dto.request.CommentCreateRequest;
 import Mua.Mua_backend.domain.comment.dto.response.CommentResponse;
 import Mua.Mua_backend.domain.comment.service.CommentService;
@@ -14,7 +15,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/feeds/{feedId}/comments")
-public class CommentController {
+public class CommentController implements CommentControllerDocs {
 
     private final CommentService commentService;
 
