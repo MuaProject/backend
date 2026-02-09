@@ -1,5 +1,6 @@
 package Mua.Mua_backend.domain.feed.controller;
 
+import Mua.Mua_backend.domain.feed.controller.docs.FeedControllerDocs;
 import Mua.Mua_backend.domain.feed.dto.request.FeedCreateRequest;
 import Mua.Mua_backend.domain.feed.dto.request.FeedUpdateRequest;
 import Mua.Mua_backend.domain.feed.dto.response.FeedDetailResponse;
@@ -18,7 +19,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/feeds")
-public class FeedController {
+public class FeedController implements FeedControllerDocs {
 
     private final FeedService feedService;
 

@@ -2,6 +2,7 @@ package Mua.Mua_backend.domain.participation.entity;
 
 import Mua.Mua_backend.domain.feed.entity.Feed;
 import Mua.Mua_backend.domain.member.entity.Member;
+import Mua.Mua_backend.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "participation")
-public class Participation {
+public class Participation extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
