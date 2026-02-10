@@ -4,3 +4,6 @@ spring:
 
 server:
   port: 8080
+
+firebase:
+  key-path: ${FIREBASE_KEY_PATH}
