@@ -62,6 +62,10 @@ public class Feed extends BaseTimeEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member writer;
 
+    // 중복 알림 방지
+    @Column(nullable = false)
+    private boolean gameStarted = false;
+
     @Builder
     private Feed(
             String image,
@@ -184,4 +188,7 @@ public class Feed extends BaseTimeEntity {
         }
     }
 
+    public void markGameStarted() {
+        this.gameStarted = true;
+    }
 }
