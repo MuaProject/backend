@@ -4,6 +4,8 @@ import Mua.Mua_backend.domain.comment.service.CommentService;
 import Mua.Mua_backend.domain.feed.entity.Feed;
 import Mua.Mua_backend.domain.feed.repository.FeedRepository;
 import Mua.Mua_backend.domain.member.entity.Member;
+import Mua.Mua_backend.domain.notification.entity.NotificationType;
+import Mua.Mua_backend.domain.notification.service.NotificationService;
 import Mua.Mua_backend.domain.participation.dto.response.MyParticipationResponse;
 import Mua.Mua_backend.domain.participation.dto.response.ParticipationResponse;
 import Mua.Mua_backend.domain.participation.entity.Participation;
@@ -31,6 +33,7 @@ public class ParticipationService {
     private final ParticipationRepository participationRepository;
     private final FeedRepository feedRepository;
     private final CommentService commentService;
+    private final NotificationService notificationService;
 
     // 참가 신청
     public void apply(Long feedId, Member member) {
@@ -81,6 +84,17 @@ public class ParticipationService {
         validateWriter(participation, writer);
 
         participation.approve();
+
+        // 참가 확정 알림
+        Member applicant = participation.getApplicant();
+        Feed feed = participation.getFeed();
+
+        notificationService.sendNotification(
+                applicant,
+                NotificationType.PARTICIPATION_APPROVED,
+                feed.getId(),
+                "참가가 확정되었습니다."
+        );
     }
 
     // 참가 거절
@@ -91,6 +105,17 @@ public class ParticipationService {
         validateWriter(participation, writer);
 
         participation.reject();
+
+        // 참가 거절 알림
+        Member applicant = participation.getApplicant();
+        Feed feed = participation.getFeed();
+
+        notificationService.sendNotification(
+                applicant,
+                NotificationType.PARTICIPATION_REJECTED,
+                feed.getId(),
+                "참가가 거절되었습니다."
+        );
     }
 
     @Transactional(readOnly = true)
