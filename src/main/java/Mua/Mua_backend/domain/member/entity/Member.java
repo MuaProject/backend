@@ -37,6 +37,9 @@ public class Member {
     @Column(nullable = false)
     private String providerId;
 
+    @Column(name = "fcm_token")
+    private String fcmToken;
+
     public static Member createOAuthUser(
             String email,
             String nickname,
@@ -67,4 +70,6 @@ public class Member {
     public boolean isAdmin() {
         return this.role == Role.ADMIN;
     }
+
+    public void updateFcmToken(String fcmToken) { this.fcmToken = fcmToken; }
 }
