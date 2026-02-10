@@ -19,6 +19,7 @@ public class Notification extends BaseTimeEntity {
 
     private String message;
 
+    @Column(name = "is_read")
     private boolean read;
 
     @Enumerated(EnumType.STRING)
