@@ -63,4 +63,15 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
             @Param("cursorId") Long cursorId,
             Pageable pageable
     );
+
+    @Query("""
+        select p.applicant
+        from Participation p
+        where p.feed.id = :feedId
+        and p.status = :status
+    """)
+    List<Member> findMembersByFeedAndStatus(
+            Long feedId,
+            ParticipationStatus status
+    );
 }

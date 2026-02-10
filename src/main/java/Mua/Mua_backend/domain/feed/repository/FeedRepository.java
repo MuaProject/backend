@@ -43,4 +43,10 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
             Pageable pageable
     );
 
+    @Query("""
+        select f from Feed f
+        where f.playDate <= :now
+        and f.gameStarted = false
+    """)
+    List<Feed> findFeedsToStart(LocalDateTime now);
 }
