@@ -23,9 +23,6 @@ public class Member {
     @Column(name = "email", nullable = false)
     private String email;
 
-    @Column(name = "refresh_token")
-    private String refreshToken;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private Role role;
@@ -57,14 +54,6 @@ public class Member {
 
     public void updateNickname(String nickname) {
         this.nickname = nickname;
-    }
-
-    public void updateRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
-    }
-
-    public void clearRefreshToken() {
-        this.refreshToken = null;
     }
 
     public boolean isAdmin() {
