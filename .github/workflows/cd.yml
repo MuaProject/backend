@@ -44,8 +44,8 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/mua-backend:latest
-            docker stop mua-backend || true
-            docker rm mua-backend || true
-            docker run -d -p 8080:8080 --name mua-backend \
-              ${{ secrets.DOCKERHUB_USERNAME }}/mua-backend:latest
+            cd /home/ec2-user
+
+            docker-compose pull
+            docker-compose down
+            docker-compose up -d
