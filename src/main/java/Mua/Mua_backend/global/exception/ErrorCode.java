@@ -23,6 +23,7 @@ public enum ErrorCode {
     PARTICIPATION_NOT_FOUND_EXCEPTION(404, "참가 신청이 존재하지 않습니다."),
 
     ALREADY_PARTICIPATED_EXCEPTION(409, "이미 참가 신청한 게시물입니다."),
+    ALREADY_NICKNAME_EXCEPTION(409, "이미 사용 중인 닉네임입니다."),
 
     INTERNAL_SERVER_ERROR(500, "서버 오류가 발생했습니다."),
 
