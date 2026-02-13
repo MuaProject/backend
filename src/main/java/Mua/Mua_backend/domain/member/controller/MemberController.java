@@ -1,6 +1,7 @@
 package Mua.Mua_backend.domain.member.controller;
 
 import Mua.Mua_backend.domain.member.dto.request.FcmTokenRequest;
+import Mua.Mua_backend.domain.member.dto.request.NicknameUpdateRequest;
 import Mua.Mua_backend.domain.member.entity.Member;
 import Mua.Mua_backend.domain.member.service.MemberService;
 import jakarta.validation.Valid;
@@ -32,6 +33,16 @@ public class MemberController {
             @AuthenticationPrincipal Member member
     ) {
         memberService.removeFcmToken(member);
+        return ResponseEntity.noContent().build();
+    }
+
+    // 닉네임 수정
+    @PatchMapping("/nickname")
+    public ResponseEntity<Void> updateNickname(
+            @AuthenticationPrincipal Member member,
+            @Valid @RequestBody NicknameUpdateRequest request
+    ) {
+        memberService.updateNickname(member.getId(), request.nickname());
         return ResponseEntity.noContent().build();
     }
 }

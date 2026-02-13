@@ -14,4 +14,6 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
             AuthProvider provider,
             String providerId
     );
+
+    boolean existsByNickname(String nickname);
 }
