@@ -1,11 +1,14 @@
 package Mua.Mua_backend.global.security.jwt;
 
+import Mua.Mua_backend.domain.member.entity.Member;
+import Mua.Mua_backend.global.exception.member.ForbiddenException;
 import Mua.Mua_backend.global.security.entity.RefreshToken;
 import Mua.Mua_backend.global.security.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,5 +66,26 @@ public class JwtLoginAPIController {
                     .status(HttpStatus.UNAUTHORIZED)
                     .body("Invalid refresh token");
         }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+            @AuthenticationPrincipal Member member,
+            @RequestHeader("Refresh-Token") String refreshToken
+    ) {
+
+        RefreshToken storedToken = refreshTokenRepository
+                .findByToken(refreshToken)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
+
+        // 본인 토큰인지 검증
+        if (!storedToken.getMemberId().equals(member.getId())) {
+            throw new ForbiddenException();
+        }
+
+        // 토큰 삭제
+        refreshTokenRepository.deleteByToken(refreshToken);
+
+        return ResponseEntity.noContent().build();
     }
 }
