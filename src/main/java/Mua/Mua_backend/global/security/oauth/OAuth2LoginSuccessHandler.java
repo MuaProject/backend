@@ -24,7 +24,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     // 토큰 만료시간 (Refresh: 14일)
     private static final long REFRESH_TOKEN_EXPIRE_DAYS = 14; // 14일
 
-	@Override
+    @Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
 		Authentication authentication) throws IOException {
 
@@ -48,6 +48,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         refreshTokenRepository.save(entity);
 
-        response.sendRedirect("http://localhost:3000/oauth/success?token=" + accessToken); // 프론트에 전달
-	}
+        response.sendRedirect("https://yeogiyeogimoyeora.shop/oauth/success?token=" + accessToken);
+    }
 }
