@@ -7,6 +7,7 @@ import Mua.Mua_backend.global.security.repository.RefreshTokenRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     // 토큰 만료시간 (Refresh: 14일)
     private static final long REFRESH_TOKEN_EXPIRE_DAYS = 14; // 14일
+
+    @Value("${app.oauth.redirect-uri}")
+    private String redirectUri;
 
     @Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -48,6 +52,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         refreshTokenRepository.save(entity);
 
-        response.sendRedirect("https://localhost:5173-client.vercel.app/oauth/success?token=" + accessToken);
+        response.sendRedirect(redirectUri + "?token=" + accessToken);
     }
 }
