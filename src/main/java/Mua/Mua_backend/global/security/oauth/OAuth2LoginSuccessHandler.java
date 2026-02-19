@@ -48,6 +48,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         refreshTokenRepository.save(entity);
 
-        response.sendRedirect("https://mua-client.vercel.app/oauth/success?token=" + accessToken);
+        response.sendRedirect("https://localhost:5173-client.vercel.app/oauth/success?token=" + accessToken);
     }
 }
