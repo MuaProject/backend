@@ -4,6 +4,7 @@ import Mua.Mua_backend.domain.member.entity.Member;
 import Mua.Mua_backend.global.security.entity.RefreshToken;
 import Mua.Mua_backend.global.security.jwt.JwtTokenUtil;
 import Mua.Mua_backend.global.security.repository.RefreshTokenRepository;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +52,14 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         );
 
         refreshTokenRepository.save(entity);
+
+        Cookie refreshCookie = new Cookie("refreshToken", refreshToken);
+        refreshCookie.setHttpOnly(true);
+        refreshCookie.setSecure(false);
+        refreshCookie.setPath("/");
+        refreshCookie.setMaxAge(60 * 60 * 24 * 14);
+
+        response.addCookie(refreshCookie);
 
         response.sendRedirect(redirectUri + "?token=" + accessToken);
     }
