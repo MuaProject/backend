@@ -4,11 +4,11 @@ import Mua.Mua_backend.domain.member.entity.Member;
 import Mua.Mua_backend.global.security.entity.RefreshToken;
 import Mua.Mua_backend.global.security.jwt.JwtTokenUtil;
 import Mua.Mua_backend.global.security.repository.RefreshTokenRepository;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -53,13 +53,15 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         refreshTokenRepository.save(entity);
 
-        Cookie refreshCookie = new Cookie("refreshToken", refreshToken);
-        refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(false);
-        refreshCookie.setPath("/");
-        refreshCookie.setMaxAge(60 * 60 * 24 * 14);
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(false) // 로컬 테스트면 false, HTTPS면 true
+                .sameSite("None")
+                .path("/")
+                .maxAge(60 * 60 * 24 * 14)
+                .build();
 
-        response.addCookie(refreshCookie);
+        response.setHeader("Set-Cookie", refreshCookie.toString());
 
         response.sendRedirect(redirectUri + "?token=" + accessToken);
     }
