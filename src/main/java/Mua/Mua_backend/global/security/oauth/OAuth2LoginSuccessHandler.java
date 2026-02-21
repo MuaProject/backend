@@ -55,7 +55,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
-                .secure(false) // 로컬 테스트면 false, HTTPS면 true
+                .secure(true) // 로컬 테스트면 false, HTTPS면 true
                 .sameSite("None")
                 .path("/")
                 .maxAge(60 * 60 * 24 * 14)
