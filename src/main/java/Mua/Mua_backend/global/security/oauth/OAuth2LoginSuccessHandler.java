@@ -61,8 +61,17 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                 .maxAge(60 * 60 * 24 * 14)
                 .build();
 
-        response.setHeader("Set-Cookie", refreshCookie.toString());
+        response.addHeader("Set-Cookie", refreshCookie.toString());
 
-        response.sendRedirect(redirectUri + "?token=" + accessToken);
+        // AccessToken을 JSON으로 반환
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        String jsonResponse = String.format(
+                "{\"accessToken\":\"%s\"}", accessToken
+        );
+
+        response.getWriter().write(jsonResponse);
+        response.setStatus(HttpServletResponse.SC_OK);
     }
 }
