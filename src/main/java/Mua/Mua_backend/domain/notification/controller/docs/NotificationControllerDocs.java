@@ -92,4 +92,3 @@ public interface NotificationControllerDocs {
             @AuthenticationPrincipal Member member
     );
 }
-}
