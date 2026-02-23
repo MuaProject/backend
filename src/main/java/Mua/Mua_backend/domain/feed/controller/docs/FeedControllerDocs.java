@@ -2,8 +2,8 @@ package Mua.Mua_backend.domain.feed.controller.docs;
 
 import Mua.Mua_backend.domain.feed.dto.request.FeedCreateRequest;
 import Mua.Mua_backend.domain.feed.dto.request.FeedUpdateRequest;
+import Mua.Mua_backend.domain.feed.dto.response.FeedCursorResponse;
 import Mua.Mua_backend.domain.feed.dto.response.FeedDetailResponse;
-import Mua.Mua_backend.domain.feed.dto.response.FeedResponse;
 import Mua.Mua_backend.domain.member.entity.Member;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -34,10 +34,10 @@ public interface FeedControllerDocs {
             description = "피드 목록 조회 성공",
             content = @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = FeedResponse.class)
+                    schema = @Schema(implementation = FeedCursorResponse.class)
             )
     )
-    ResponseEntity<List<FeedResponse>> getFeeds(
+    ResponseEntity<FeedCursorResponse> getFeeds(
             @Parameter(description = "커서 ID") @RequestParam(required = false) Long cursorId,
             @Parameter(description = "커서 생성 시간") @RequestParam(required = false) LocalDateTime cursorCreatedAt,
             @Parameter(description = "정렬 기준 (LATEST / DISTANCE)") @RequestParam(defaultValue = "LATEST") String sort,

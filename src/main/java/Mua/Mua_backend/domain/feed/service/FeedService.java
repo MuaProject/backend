@@ -2,6 +2,7 @@ package Mua.Mua_backend.domain.feed.service;
 
 import Mua.Mua_backend.domain.feed.dto.request.FeedCreateRequest;
 import Mua.Mua_backend.domain.feed.dto.request.FeedUpdateRequest;
+import Mua.Mua_backend.domain.feed.dto.response.FeedCursorResponse;
 import Mua.Mua_backend.domain.feed.dto.response.FeedDetailResponse;
 import Mua.Mua_backend.domain.feed.dto.response.FeedResponse;
 import Mua.Mua_backend.domain.feed.dto.response.WriterResponse;
@@ -28,7 +29,7 @@ public class FeedService {
     private final FeedRepository feedRepository;
 
     @Transactional(readOnly = true)
-    public List<FeedResponse> getFeeds(
+    public FeedCursorResponse getFeeds(
             Long cursorId,
             LocalDateTime cursorCreatedAt,
             String sort,
@@ -37,6 +38,9 @@ public class FeedService {
             int size
     ) {
         List<Feed> feeds;
+
+        // size + 1 조회 (hasNext 판단용)
+        PageRequest pageable = PageRequest.of(0, size + 1);
 
         if ("DISTANCE".equals(sort)) {
             if (latitude == null || longitude == null) {
@@ -47,17 +51,23 @@ public class FeedService {
                     cursorId,
                     latitude,
                     longitude,
-                    PageRequest.of(0, size)
+                    pageable
             );
         } else {
             feeds = feedRepository.findLatestFeeds(
                     cursorId,
                     cursorCreatedAt,
-                    PageRequest.of(0, size)
+                    pageable
             );
         }
 
-        return feeds.stream()
+        boolean hasNext = feeds.size() > size;
+
+        if (hasNext) {
+            feeds = feeds.subList(0, size);
+        }
+
+        List<FeedResponse> responses = feeds.stream()
                 .map(feed -> new FeedResponse(
                         feed.getId(),
                         feed.getTitle(),
@@ -68,6 +78,22 @@ public class FeedService {
                         feed.getCreatedAt()
                 ))
                 .toList();
+
+        Long nextCursorId = null;
+        LocalDateTime nextCursorCreatedAt = null;
+
+        if (!feeds.isEmpty()) {
+            Feed lastFeed = feeds.get(feeds.size() - 1);
+            nextCursorId = lastFeed.getId();
+            nextCursorCreatedAt = lastFeed.getCreatedAt();
+        }
+
+        return new FeedCursorResponse(
+                responses,
+                nextCursorId,
+                nextCursorCreatedAt,
+                hasNext
+        );
     }
 
     @Transactional(readOnly = true)

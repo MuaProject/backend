@@ -3,8 +3,8 @@ package Mua.Mua_backend.domain.feed.controller;
 import Mua.Mua_backend.domain.feed.controller.docs.FeedControllerDocs;
 import Mua.Mua_backend.domain.feed.dto.request.FeedCreateRequest;
 import Mua.Mua_backend.domain.feed.dto.request.FeedUpdateRequest;
+import Mua.Mua_backend.domain.feed.dto.response.FeedCursorResponse;
 import Mua.Mua_backend.domain.feed.dto.response.FeedDetailResponse;
-import Mua.Mua_backend.domain.feed.dto.response.FeedResponse;
 import Mua.Mua_backend.domain.feed.service.FeedService;
 import Mua.Mua_backend.domain.member.entity.Member;
 import jakarta.validation.Valid;
@@ -14,7 +14,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,7 +23,7 @@ public class FeedController implements FeedControllerDocs {
     private final FeedService feedService;
 
     @GetMapping
-    public ResponseEntity<List<FeedResponse>> getFeeds(
+    public ResponseEntity<FeedCursorResponse> getFeeds(
             @RequestParam(required = false) Long cursorId,
             @RequestParam(required = false) LocalDateTime cursorCreatedAt,
             @RequestParam(defaultValue = "LATEST") String sort,
