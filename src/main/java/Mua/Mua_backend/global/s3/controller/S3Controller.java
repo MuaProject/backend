@@ -25,9 +25,12 @@ public class S3Controller {
         String key = s3Service.createKey(type);
         URL url = s3Service.generatePreSignedUploadUrl(key, contentType);
 
+        String fileUrl = "https://mua-prod-image-bucket.s3.ap-northeast-2.amazonaws.com/" + key;
+
         return Map.of(
                 "uploadUrl", url.toString(),
-                "fileKey", key
+                "fileKey", key,
+                "fileUrl", fileUrl
         );
     }
 }
