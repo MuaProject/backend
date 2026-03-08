@@ -56,7 +56,7 @@ public class ParticipationService {
         participationRepository.save(participation);
 
         String message = member.getNickname() + "님이 참가 신청했습니다.";
-        commentService.createSystemComment(feed.getId(), message);
+        commentService.createSystemComment(feed.getId(), message, participation.getId());
     }
 
     // 참가자 전체 조회

@@ -84,11 +84,11 @@ public class CommentService {
     }
 
     // 시스템 댓글 생성
-    public void createSystemComment(Long feedId, String message) {
+    public void createSystemComment(Long feedId, String message, Long participationId) {
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new IllegalArgumentException("피드가 존재하지 않습니다."));
 
-        Comment comment = Comment.createSystemComment(message, feed);
+        Comment comment = Comment.createSystemComment(message, feed, participationId);
         commentRepository.save(comment);
     }
 
