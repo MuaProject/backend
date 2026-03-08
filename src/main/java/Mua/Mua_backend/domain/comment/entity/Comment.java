@@ -53,6 +53,9 @@ public class Comment extends BaseTimeEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
+    @Column(name = "participation_id")
+    private Long participationId;
+
     @Builder(access = AccessLevel.PRIVATE)
     private Comment(
             String description,
@@ -60,7 +63,8 @@ public class Comment extends BaseTimeEntity {
             Integer depth,
             CommentType commentType,
             Member member,
-            Feed feed
+            Feed feed,
+            Long participationId
     ) {
         this.description = description;
         this.parentId = parentId;
@@ -68,6 +72,7 @@ public class Comment extends BaseTimeEntity {
         this.commentType = commentType;
         this.member = member;
         this.feed = feed;
+        this.participationId = participationId;
     }
 
     // USER 댓글 생성
@@ -90,7 +95,8 @@ public class Comment extends BaseTimeEntity {
     // SYSTEM 댓글 생성
     public static Comment createSystemComment(
             String description,
-            Feed feed
+            Feed feed,
+            Long participationId
     ) {
         return Comment.builder()
                 .description(description)
@@ -99,6 +105,7 @@ public class Comment extends BaseTimeEntity {
                 .commentType(CommentType.SYSTEM)
                 .member(null)
                 .feed(feed)
+                .participationId(participationId)
                 .build();
     }
 

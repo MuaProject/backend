@@ -9,6 +9,7 @@ import java.util.List;
 public record CommentResponse(
         Long commentId,
         Long feedId,
+        Long participationId,
         String description,
         Long parentId,
         Integer depth,
@@ -22,6 +23,7 @@ public record CommentResponse(
         return new CommentResponse(
                 comment.getId(),
                 comment.getFeed().getId(),
+                comment.getParticipationId(),
                 comment.getDescription(),
                 comment.getParentId(),
                 comment.getDepth(),
