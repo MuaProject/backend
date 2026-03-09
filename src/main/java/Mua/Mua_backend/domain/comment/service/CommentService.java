@@ -84,11 +84,23 @@ public class CommentService {
     }
 
     // 시스템 댓글 생성
-    public void createSystemComment(Long feedId, String message, Long participationId) {
+    public void createEventComment(
+            Long feedId,
+            Long participationId,
+            String message,
+            CommentType type
+    ) {
+
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new IllegalArgumentException("피드가 존재하지 않습니다."));
 
-        Comment comment = Comment.createSystemComment(message, feed, participationId);
+        Comment comment = Comment.createEventComment(
+                message,
+                feed,
+                participationId,
+                type
+        );
+
         commentRepository.save(comment);
     }
 
@@ -97,8 +109,8 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글이 존재하지 않습니다."));
 
-        if (comment.getCommentType() == CommentType.SYSTEM) {
-            throw new IllegalArgumentException("SYSTEM 댓글은 삭제할 수 없습니다.");
+        if (comment.getCommentType() != CommentType.USER) {
+            throw new IllegalArgumentException("이벤트 댓글은 삭제할 수 없습니다.");
         }
 
         if (!comment.getMember().getId().equals(memberId)) {

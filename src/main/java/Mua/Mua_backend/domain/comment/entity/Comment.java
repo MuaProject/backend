@@ -92,17 +92,18 @@ public class Comment extends BaseTimeEntity {
                 .build();
     }
 
-    // SYSTEM 댓글 생성
-    public static Comment createSystemComment(
+    // SYSTEMEVENT 댓글 생성
+    public static Comment createEventComment(
             String description,
             Feed feed,
-            Long participationId
+            Long participationId,
+            CommentType type
     ) {
         return Comment.builder()
                 .description(description)
                 .parentId(null)
                 .depth(0)
-                .commentType(CommentType.SYSTEM)
+                .commentType(type)
                 .member(null)
                 .feed(feed)
                 .participationId(participationId)
