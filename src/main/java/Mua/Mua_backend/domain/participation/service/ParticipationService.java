@@ -1,5 +1,6 @@
 package Mua.Mua_backend.domain.participation.service;
 
+import Mua.Mua_backend.domain.comment.entity.CommentType;
 import Mua.Mua_backend.domain.comment.service.CommentService;
 import Mua.Mua_backend.domain.feed.entity.Feed;
 import Mua.Mua_backend.domain.feed.repository.FeedRepository;
@@ -56,7 +57,12 @@ public class ParticipationService {
         participationRepository.save(participation);
 
         String message = member.getNickname() + "님이 참가 신청했습니다.";
-        commentService.createSystemComment(feed.getId(), message, participation.getId());
+        commentService.createEventComment(
+                feed.getId(),
+                participation.getId(),
+                message,
+                CommentType.APPLY
+        );
     }
 
     // 참가자 전체 조회
@@ -89,6 +95,15 @@ public class ParticipationService {
         Member applicant = participation.getApplicant();
         Feed feed = participation.getFeed();
 
+        String message = applicant.getNickname() + "님의 참가가 승인되었습니다.";
+
+        commentService.createEventComment(
+                feed.getId(),
+                participation.getId(),
+                message,
+                CommentType.APPROVE
+        );
+
         notificationService.sendNotification(
                 applicant,
                 NotificationType.PARTICIPATION_APPROVED,
@@ -109,6 +124,15 @@ public class ParticipationService {
         // 참가 거절 알림
         Member applicant = participation.getApplicant();
         Feed feed = participation.getFeed();
+
+        String message = applicant.getNickname() + "님의 참가가 거절되었습니다.";
+
+        commentService.createEventComment(
+                feed.getId(),
+                participation.getId(),
+                message,
+                CommentType.REJECT
+        );
 
         notificationService.sendNotification(
                 applicant,
