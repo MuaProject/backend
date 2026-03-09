@@ -114,4 +114,8 @@ public class Comment extends BaseTimeEntity {
         this.isDeleted = true;
         this.description = "삭제된 댓글입니다.";
     }
+
+    public void changeType(CommentType type) {
+        this.commentType = type;
+    }
 }

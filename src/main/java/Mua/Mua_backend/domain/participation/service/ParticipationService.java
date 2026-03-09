@@ -95,12 +95,8 @@ public class ParticipationService {
         Member applicant = participation.getApplicant();
         Feed feed = participation.getFeed();
 
-        String message = applicant.getNickname() + "님의 참가가 승인되었습니다.";
-
-        commentService.createEventComment(
-                feed.getId(),
+        commentService.updateEventComment(
                 participation.getId(),
-                message,
                 CommentType.APPROVE
         );
 
@@ -125,12 +121,8 @@ public class ParticipationService {
         Member applicant = participation.getApplicant();
         Feed feed = participation.getFeed();
 
-        String message = applicant.getNickname() + "님의 참가가 거절되었습니다.";
-
-        commentService.createEventComment(
-                feed.getId(),
+        commentService.updateEventComment(
                 participation.getId(),
-                message,
                 CommentType.REJECT
         );
 

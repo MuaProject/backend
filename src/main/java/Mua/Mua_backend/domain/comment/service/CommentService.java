@@ -119,4 +119,13 @@ public class CommentService {
 
         comment.delete();
     }
+
+    // 참가 승인, 거절에 따른 댓글 상태변환
+    public void updateEventComment(Long participationId, CommentType type) {
+
+        Comment comment = commentRepository.findByParticipationId(participationId)
+                .orElseThrow(() -> new IllegalArgumentException("댓글이 존재하지 않습니다."));
+
+        comment.changeType(type);
+    }
 }
