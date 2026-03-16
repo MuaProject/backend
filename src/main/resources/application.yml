@@ -5,5 +5,10 @@ spring:
 server:
   port: 8080
 
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO
+
 firebase:
   key-path: ${FIREBASE_KEY_PATH}
