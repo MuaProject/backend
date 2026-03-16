@@ -47,6 +47,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login/**", "/oauth2/**", "/login/oauth2/**",
+                                "/token/refresh", "/token/logout",
                                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/h2-console/**", "/api/feeds/**", "/api/notifications/**",
                                 "/api/members/**", "/health").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")

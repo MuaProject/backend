@@ -9,29 +9,45 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 
 @RestController
 @RequestMapping("/token")
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class JwtLoginAPIController {
 
     private final JwtTokenUtil jwtTokenUtil;
     private final RefreshTokenRepository refreshTokenRepository;
 
+    @Value("${app.cookie.secure:true}")
+    private boolean cookieSecure;
+
+    @Value("${app.cookie.same-site:None}")
+    private String cookieSameSite;
+
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(HttpServletRequest request,
                                      HttpServletResponse response) {
+        log.info("POST /token/refresh sessionId={}, requestedSessionId={}, cookies={}",
+                request.getSession(false) != null ? request.getSession(false).getId() : null,
+                request.getRequestedSessionId(),
+                request.getCookies() == null ? "[]" : Arrays.stream(request.getCookies())
+                        .map(Cookie::getName)
+                        .toList());
 
         String refreshToken = null;
 
@@ -73,13 +89,15 @@ public class JwtLoginAPIController {
         refreshTokenRepository.save(storedToken);
 
         // 새 RefreshToken 쿠키 다시 내려줌
-        Cookie newCookie = new Cookie("refreshToken", newRefreshToken);
-        newCookie.setHttpOnly(true);
-        newCookie.setSecure(false);
-        newCookie.setPath("/");
-        newCookie.setMaxAge(60 * 60 * 24 * 14);
+        ResponseCookie newCookie = ResponseCookie.from("refreshToken", newRefreshToken)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite(cookieSameSite)
+                .path("/")
+                .maxAge(60 * 60 * 24 * 14)
+                .build();
 
-        response.addCookie(newCookie);
+        response.addHeader(HttpHeaders.SET_COOKIE, newCookie.toString());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + newAccessToken)
@@ -118,10 +136,14 @@ public class JwtLoginAPIController {
         refreshTokenRepository.deleteByToken(refreshToken);
 
         // 쿠키 삭제
-        Cookie deleteCookie = new Cookie("refreshToken", null);
-        deleteCookie.setMaxAge(0);
-        deleteCookie.setPath("/");
-        response.addCookie(deleteCookie);
+        ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite(cookieSameSite)
+                .path("/")
+                .maxAge(0)
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
 
         return ResponseEntity.noContent().build();
     }
