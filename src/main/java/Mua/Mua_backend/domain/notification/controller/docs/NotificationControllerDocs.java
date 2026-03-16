@@ -17,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
@@ -66,6 +68,31 @@ public interface NotificationControllerDocs {
     })
     @GetMapping
     List<NotificationResponse> getMyNotifications(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal Member member
+    );
+
+
+    @Operation(
+            summary = "알림 읽음 처리",
+            description = """
+                특정 알림을 읽음 상태로 변경합니다.
+                
+                - 이미 읽은 알림이어도 요청은 정상 처리됩니다.
+                - 성공 시 200 OK를 반환합니다.
+                """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "알림 읽음 처리 성공"
+            )
+    })
+    @PatchMapping("/{notificationId}/read")
+    ResponseEntity<Void> readNotification(
+            @Parameter(description = "읽음 처리할 알림 ID", example = "1")
+            @PathVariable Long notificationId,
+
             @Parameter(hidden = true)
             @AuthenticationPrincipal Member member
     );
