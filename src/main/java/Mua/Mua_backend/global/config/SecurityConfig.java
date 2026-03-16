@@ -78,7 +78,8 @@ public class SecurityConfig {
         config.setAllowCredentials(true);
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",
-                "http://localhost:5173"
+                "http://localhost:5173",
+                "https://mua-client.vercel.app"
         ));
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
