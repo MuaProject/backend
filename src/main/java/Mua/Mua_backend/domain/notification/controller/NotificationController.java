@@ -1,6 +1,7 @@
 package Mua.Mua_backend.domain.notification.controller;
 
 import Mua.Mua_backend.domain.member.entity.Member;
+import Mua.Mua_backend.domain.notification.controller.docs.NotificationControllerDocs;
 import Mua.Mua_backend.domain.notification.dto.response.NotificationResponse;
 import Mua.Mua_backend.domain.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/notifications")
-public class NotificationController {
+public class NotificationController implements NotificationControllerDocs {
 
     private final NotificationService notificationService;
 
