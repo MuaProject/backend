@@ -7,10 +7,10 @@ import Mua.Mua_backend.domain.feed.dto.response.FeedDetailResponse;
 import Mua.Mua_backend.domain.feed.dto.response.FeedResponse;
 import Mua.Mua_backend.domain.feed.dto.response.WriterResponse;
 import Mua.Mua_backend.domain.feed.entity.Feed;
+import Mua.Mua_backend.domain.feed.entity.Location;
 import Mua.Mua_backend.domain.feed.repository.FeedRepository;
 import Mua.Mua_backend.domain.member.entity.Member;
 import Mua.Mua_backend.global.exception.feed.FeedNotFoundException;
-import Mua.Mua_backend.global.exception.feed.FeedUpdateForbiddenException;
 import Mua.Mua_backend.global.exception.feed.LocationRequiredException;
 import Mua.Mua_backend.global.exception.feed.NoFeedUpdateContentException;
 import lombok.RequiredArgsConstructor;
@@ -38,8 +38,6 @@ public class FeedService {
             int size
     ) {
         List<Feed> feeds;
-
-        // size + 1 조회 (hasNext 판단용)
         PageRequest pageable = PageRequest.of(0, size + 1);
 
         if ("DISTANCE".equals(sort)) {
@@ -99,7 +97,7 @@ public class FeedService {
     @Transactional(readOnly = true)
     public FeedDetailResponse getFeedDetail(Long feedId) {
         Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(() -> new FeedNotFoundException());
+                .orElseThrow(FeedNotFoundException::new);
 
         return new FeedDetailResponse(
                 feed.getId(),
@@ -129,9 +127,11 @@ public class FeedService {
                 .playCount(request.playCount())
                 .description(request.description())
                 .timer(request.timer())
-                .address(request.address())
-                .latitude(request.latitude())
-                .longitude(request.longitude())
+                .location(Location.of(
+                        request.address(),
+                        request.latitude(),
+                        request.longitude()
+                ))
                 .build();
 
         return feedRepository.save(feed).getId();
@@ -139,26 +139,57 @@ public class FeedService {
 
     public void updateFeed(Long feedId, Member writer, FeedUpdateRequest request) {
         Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(() -> new FeedNotFoundException());
-        validateWriter(feed, writer);
+                .orElseThrow(FeedNotFoundException::new);
+        feed.assertWrittenBy(writer);
 
         if (request.isAllNull()) {
             throw new NoFeedUpdateContentException();
         }
 
-        feed.update(request);
+        Location location = hasLocationUpdate(request)
+                ? mergeLocation(feed, request)
+                : null;
+
+        feed.update(
+                request.title(),
+                request.image(),
+                request.description(),
+                request.timer(),
+                request.playGround(),
+                request.playDate(),
+                request.round(),
+                location
+        );
+    }
+
+    private boolean hasLocationUpdate(FeedUpdateRequest request) {
+        return request.address() != null
+                || request.latitude() != null
+                || request.longitude() != null;
+    }
+
+    private Location mergeLocation(Feed feed, FeedUpdateRequest request) {
+        Location current = feed.getLocation();
+
+        String address = request.address() != null
+                ? request.address()
+                : current != null ? current.getAddress() : null;
+
+        Double latitude = request.latitude() != null
+                ? request.latitude()
+                : current != null ? current.getLatitude() : null;
+
+        Double longitude = request.longitude() != null
+                ? request.longitude()
+                : current != null ? current.getLongitude() : null;
+
+        return Location.of(address, latitude, longitude);
     }
 
     public void deleteFeed(Long feedId, Member writer) {
         Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(() -> new FeedNotFoundException());
-        validateWriter(feed, writer);
+                .orElseThrow(FeedNotFoundException::new);
+        feed.assertWrittenBy(writer);
         feedRepository.delete(feed);
-    }
-
-    private void validateWriter(Feed feed, Member writer) {
-        if (!feed.getWriter().getId().equals(writer.getId())) {
-            throw new FeedUpdateForbiddenException();
-        }
     }
 }
