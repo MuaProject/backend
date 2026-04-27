@@ -1,5 +1,6 @@
 HELP.md
 .gradle
+.gradle-user-home/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -36,11 +37,16 @@ out/
 ### VS Code ###
 .vscode/
 
+### Local config / secrets ###
 application.yml
 application-local.yml
 docker-compose.yml
+.env
+src/main/resources/*.json
 
+### CI ###
 !ci.yml
 !cd.yml
 
-.env
+### OS files ###
+.DS_Store
