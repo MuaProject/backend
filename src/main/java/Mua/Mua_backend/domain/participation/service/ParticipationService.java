@@ -13,10 +13,8 @@ import Mua.Mua_backend.domain.participation.entity.Participation;
 import Mua.Mua_backend.domain.participation.entity.ParticipationStatus;
 import Mua.Mua_backend.domain.participation.repository.ParticipationRepository;
 import Mua.Mua_backend.global.exception.feed.FeedNotFoundException;
-import Mua.Mua_backend.global.exception.feed.FeedUpdateForbiddenException;
 import Mua.Mua_backend.global.exception.participation.AlreadyParticipatedException;
 import Mua.Mua_backend.global.exception.participation.ParticipationNotFoundException;
-import Mua.Mua_backend.global.exception.participation.SelfParticipationNotAllowedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,27 +34,18 @@ public class ParticipationService {
     private final CommentService commentService;
     private final NotificationService notificationService;
 
-    // 참가 신청
     public void apply(Long feedId, Member member) {
         Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(() -> new FeedNotFoundException());
-
-        if (feed.getWriter().getId().equals(member.getId())) {
-            throw new SelfParticipationNotAllowedException();
-        }
+                .orElseThrow(FeedNotFoundException::new);
 
         if (participationRepository.existsByFeedAndApplicant(feed, member)) {
             throw new AlreadyParticipatedException();
         }
 
-        Participation participation = Participation.builder()
-                .feed(feed)
-                .applicant(member)
-                .build();
-
+        Participation participation = Participation.apply(feed, member);
         participationRepository.save(participation);
 
-        String message = member.getNickname() + "님이 참가 신청했습니다.";
+        String message = member.getNickname() + "님이 참가 요청했습니다.";
         commentService.createEventComment(
                 feed.getId(),
                 participation.getId(),
@@ -65,7 +54,6 @@ public class ParticipationService {
         );
     }
 
-    // 참가자 전체 조회
     @Transactional(readOnly = true)
     public List<ParticipationResponse> getParticipations(Long feedId) {
         List<Participation> participations =
@@ -82,16 +70,13 @@ public class ParticipationService {
                 .toList();
     }
 
-    // 참가 승인
     public void approve(Long participationId, Member writer) {
         Participation participation = participationRepository.findById(participationId)
-                .orElseThrow(() -> new ParticipationNotFoundException());
+                .orElseThrow(ParticipationNotFoundException::new);
 
-        validateWriter(participation, writer);
-
+        participation.assertManageableBy(writer);
         participation.approve();
 
-        // 참가 확정 알림
         Member applicant = participation.getApplicant();
         Feed feed = participation.getFeed();
 
@@ -108,16 +93,13 @@ public class ParticipationService {
         );
     }
 
-    // 참가 거절
     public void reject(Long participationId, Member writer) {
         Participation participation = participationRepository.findById(participationId)
-                .orElseThrow(() -> new ParticipationNotFoundException());
+                .orElseThrow(ParticipationNotFoundException::new);
 
-        validateWriter(participation, writer);
-
+        participation.assertManageableBy(writer);
         participation.reject();
 
-        // 참가 거절 알림
         Member applicant = participation.getApplicant();
         Feed feed = participation.getFeed();
 
@@ -146,44 +128,30 @@ public class ParticipationService {
                 (status == null) ? null : ParticipationStatus.valueOf(status);
 
         Pageable pageable = PageRequest.of(0, size);
-
         boolean hasCursor = cursorTime != null && cursorId != null;
 
         List<Participation> participations;
 
         if (!hasCursor) {
-            // 최초 조회
             participations = (participationStatus == null)
-                    ? participationRepository
-                    .findByApplicant_IdOrderByCreatedAtDescIdDesc(
-                            member.getId(), pageable
-                    )
-                    : participationRepository
-                    .findByApplicant_IdAndStatusOrderByCreatedAtDescIdDesc(
-                            member.getId(), participationStatus, pageable
-                    );
+                    ? participationRepository.findByApplicant_IdOrderByCreatedAtDescIdDesc(
+                    member.getId(), pageable
+            )
+                    : participationRepository.findByApplicant_IdAndStatusOrderByCreatedAtDescIdDesc(
+                    member.getId(), participationStatus, pageable
+            );
         } else {
-            // 다음 페이지
             participations = (participationStatus == null)
-                    ? participationRepository
-                    .findNextPage(
-                            member.getId(), cursorTime, cursorId, pageable
-                    )
-                    : participationRepository
-                    .findNextPageWithStatus(
-                            member.getId(), participationStatus,
-                            cursorTime, cursorId, pageable
-                    );
+                    ? participationRepository.findNextPage(
+                    member.getId(), cursorTime, cursorId, pageable
+            )
+                    : participationRepository.findNextPageWithStatus(
+                    member.getId(), participationStatus, cursorTime, cursorId, pageable
+            );
         }
 
         return participations.stream()
                 .map(MyParticipationResponse::from)
                 .toList();
-    }
-
-    private void validateWriter(Participation participation, Member writer) {
-        if (!participation.getFeed().getWriter().getId().equals(writer.getId())) {
-            throw new FeedUpdateForbiddenException();
-        }
     }
 }

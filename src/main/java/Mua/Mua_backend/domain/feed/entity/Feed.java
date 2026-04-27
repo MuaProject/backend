@@ -1,8 +1,9 @@
 package Mua.Mua_backend.domain.feed.entity;
 
-import Mua.Mua_backend.domain.feed.dto.request.FeedUpdateRequest;
 import Mua.Mua_backend.domain.member.entity.Member;
 import Mua.Mua_backend.global.common.BaseTimeEntity;
+import Mua.Mua_backend.global.exception.feed.FeedUpdateForbiddenException;
+import Mua.Mua_backend.global.exception.feed.InvalidFeedLocationException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -12,7 +13,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name= "feed" )
+@Table(name = "feed")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Feed extends BaseTimeEntity {
@@ -22,7 +23,6 @@ public class Feed extends BaseTimeEntity {
     @Column(name = "feed_id")
     private Long id;
 
-    // 게시물 정보
     @Column(name = "feed_image")
     private String image;
 
@@ -47,22 +47,13 @@ public class Feed extends BaseTimeEntity {
     @Column(name = "timer")
     private Integer timer;
 
-    // 위치 정보
-    @Column(name = "address")
-    private String address;
+    @Embedded
+    private Location location;
 
-    @Column(name = "latitude")
-    private Double latitude;
-
-    @Column(name = "longitude")
-    private Double longitude;
-
-    // 작성자
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member writer;
 
-    // 중복 알림 방지
     @Column(nullable = false)
     private boolean gameStarted = false;
 
@@ -76,13 +67,10 @@ public class Feed extends BaseTimeEntity {
             Integer playCount,
             String description,
             Integer timer,
-            String address,
-            Double latitude,
-            Double longitude,
+            Location location,
             Member writer
     ) {
         validatePlayDate(playDate);
-        validateLocation(latitude, longitude);
 
         this.writer = writer;
         this.image = image;
@@ -93,31 +81,34 @@ public class Feed extends BaseTimeEntity {
         this.playCount = playCount;
         this.description = description;
         this.timer = timer;
-        this.address = address;
-        this.latitude = latitude;
-        this.longitude = longitude;
+        this.location = location;
     }
 
-    public void update(FeedUpdateRequest request) {
-        updateContent(
-                request.title(),
-                request.image(),
-                request.description(),
-                request.timer()
-        );
-        updateSchedule(
-                request.playGround(),
-                request.playDate(),
-                request.round()
-        );
-        updateLocation(
-                request.address(),
-                request.latitude(),
-                request.longitude()
-        );
+    public void update(
+            String title,
+            String image,
+            String description,
+            Integer timer,
+            String playGround,
+            LocalDateTime playDate,
+            Integer round,
+            Location location
+    ) {
+        updateContent(title, image, description, timer);
+        updateSchedule(playGround, playDate, round);
+        updateLocation(location);
     }
 
-    // 게시물 기본 정보 수정
+    public void assertWrittenBy(Member member) {
+        if (!isWrittenBy(member)) {
+            throw new FeedUpdateForbiddenException();
+        }
+    }
+
+    public boolean isWrittenBy(Member member) {
+        return writer.getId().equals(member.getId());
+    }
+
     public void updateContent(
             String title,
             String image,
@@ -138,7 +129,6 @@ public class Feed extends BaseTimeEntity {
         }
     }
 
-    // 일정/장소 수정
     public void updateSchedule(
             String playGround,
             LocalDateTime playDate,
@@ -156,35 +146,15 @@ public class Feed extends BaseTimeEntity {
         }
     }
 
-    // 위치 정보 수정
-    public void updateLocation(
-            String address,
-            Double latitude,
-            Double longitude
-    ) {
-        if (address != null) {
-            this.address = address;
-        }
-        if (latitude != null) {
-            this.latitude = latitude;
-        }
-        if (longitude != null) {
-            this.longitude = longitude;
+    public void updateLocation(Location location) {
+        if (location != null) {
+            this.location = location;
         }
     }
 
     private void validatePlayDate(LocalDateTime playDate) {
         if (playDate.isBefore(LocalDateTime.now())) {
-            throw new IllegalStateException("지난 날짜로는 일정 변경이 불가능합니다.");
-        }
-    }
-
-    private void validateLocation(Double latitude, Double longitude) {
-        if (latitude != null && (latitude < -90 || latitude > 90)) {
-            throw new IllegalStateException("위도 값이 올바르지 않습니다.");
-        }
-        if (longitude != null && (longitude < -180 || longitude > 180)) {
-            throw new IllegalStateException("경도 값이 올바르지 않습니다.");
+            throw new IllegalStateException("Play date cannot be in the past.");
         }
     }
 

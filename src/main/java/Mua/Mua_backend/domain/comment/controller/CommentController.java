@@ -5,6 +5,7 @@ import Mua.Mua_backend.domain.comment.dto.request.CommentCreateRequest;
 import Mua.Mua_backend.domain.comment.dto.response.CommentResponse;
 import Mua.Mua_backend.domain.comment.service.CommentService;
 import Mua.Mua_backend.domain.member.entity.Member;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,7 +26,7 @@ public class CommentController implements CommentControllerDocs {
     public ResponseEntity<Void> createComment(
             @PathVariable Long feedId,
             @AuthenticationPrincipal Member member,
-            @RequestBody CommentCreateRequest request
+            @Valid @RequestBody CommentCreateRequest request
     ) {
         commentService.createComment(feedId, member.getId(), request);
         return ResponseEntity.ok().build();

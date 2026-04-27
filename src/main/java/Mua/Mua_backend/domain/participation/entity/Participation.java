@@ -3,6 +3,8 @@ package Mua.Mua_backend.domain.participation.entity;
 import Mua.Mua_backend.domain.feed.entity.Feed;
 import Mua.Mua_backend.domain.member.entity.Member;
 import Mua.Mua_backend.global.common.BaseTimeEntity;
+import Mua.Mua_backend.global.exception.participation.InvalidParticipationStatusChangeException;
+import Mua.Mua_backend.global.exception.participation.SelfParticipationNotAllowedException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -45,11 +47,34 @@ public class Participation extends BaseTimeEntity {
         this.appliedAt = LocalDateTime.now();
     }
 
+    public static Participation apply(Feed feed, Member applicant) {
+        if (feed.isWrittenBy(applicant)) {
+            throw new SelfParticipationNotAllowedException();
+        }
+
+        return Participation.builder()
+                .feed(feed)
+                .applicant(applicant)
+                .build();
+    }
+
+    public void assertManageableBy(Member member) {
+        feed.assertWrittenBy(member);
+    }
+
     public void approve() {
+        assertPending();
         this.status = ParticipationStatus.APPROVED;
     }
 
     public void reject() {
+        assertPending();
         this.status = ParticipationStatus.REJECTED;
+    }
+
+    private void assertPending() {
+        if (status != ParticipationStatus.PENDING) {
+            throw new InvalidParticipationStatusChangeException();
+        }
     }
 }
