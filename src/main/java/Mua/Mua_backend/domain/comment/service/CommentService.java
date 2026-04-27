@@ -9,9 +9,13 @@ import Mua.Mua_backend.domain.feed.entity.Feed;
 import Mua.Mua_backend.domain.feed.repository.FeedRepository;
 import Mua.Mua_backend.domain.member.entity.Member;
 import Mua.Mua_backend.domain.member.repository.MemberRepository;
-import org.springframework.transaction.annotation.Transactional;
+import Mua.Mua_backend.global.exception.comment.CommentFeedMismatchException;
+import Mua.Mua_backend.global.exception.comment.CommentNotFoundException;
+import Mua.Mua_backend.global.exception.feed.FeedNotFoundException;
+import Mua.Mua_backend.global.exception.member.MemberNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -27,38 +31,35 @@ public class CommentService {
     private final FeedRepository feedRepository;
     private final MemberRepository memberRepository;
 
-    // 댓글, 대댓글 생성
     public void createComment(Long feedId, Long memberId, CommentCreateRequest request) {
-
         Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(() -> new IllegalArgumentException("피드가 존재하지 않습니다."));
+                .orElseThrow(FeedNotFoundException::new);
 
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+                .orElseThrow(MemberNotFoundException::new);
 
-        if (request.parentId() != null) {
-            Comment parent = commentRepository.findById(request.parentId())
-                    .orElseThrow(() -> new IllegalArgumentException("부모 댓글이 존재하지 않습니다."));
-
-            if (parent.getDepth() == 1) {
-                throw new IllegalArgumentException("대댓글에는 댓글을 달 수 없습니다.");
-            }
+        Comment comment;
+        if(request.parentId() == null) {
+            comment = Comment.createRootComment(
+                    request.description(),
+                    feed,
+                    member
+            );
+        } else {
+            Comment parent = findParentInSameFeed(feedId, request.parentId());
+            comment = Comment.createReplyComment(
+                    request.description(),
+                    feed,
+                    member,
+                    parent
+            );
         }
-
-        Comment comment = Comment.createUserComment(
-                request.description(),
-                feed,
-                member,
-                request.parentId()
-        );
 
         commentRepository.save(comment);
     }
 
-    // 댓글 조회
     @Transactional(readOnly = true)
     public List<CommentResponse> getComments(Long feedId) {
-
         List<Comment> comments =
                 commentRepository.findByFeedIdOrderByCreatedAtAsc(feedId);
 
@@ -83,16 +84,14 @@ public class CommentService {
         return result;
     }
 
-    // 시스템 댓글 생성
     public void createEventComment(
             Long feedId,
             Long participationId,
             String message,
             CommentType type
     ) {
-
         Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(() -> new IllegalArgumentException("피드가 존재하지 않습니다."));
+                .orElseThrow(FeedNotFoundException::new);
 
         Comment comment = Comment.createEventComment(
                 message,
@@ -104,28 +103,22 @@ public class CommentService {
         commentRepository.save(comment);
     }
 
-    // 댓글 삭제
     public void deleteComment(Long commentId, Long memberId) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("댓글이 존재하지 않습니다."));
+                .orElseThrow(CommentNotFoundException::new);
 
-        if (comment.getCommentType() != CommentType.USER) {
-            throw new IllegalArgumentException("이벤트 댓글은 삭제할 수 없습니다.");
-        }
-
-        if (!comment.getMember().getId().equals(memberId)) {
-            throw new IllegalArgumentException("댓글 삭제 권한이 없습니다.");
-        }
-
-        comment.delete();
+        comment.deleteBy(memberId);
     }
 
-    // 참가 승인, 거절에 따른 댓글 상태변환
     public void updateEventComment(Long participationId, CommentType type) {
-
         Comment comment = commentRepository.findByParticipationId(participationId)
-                .orElseThrow(() -> new IllegalArgumentException("댓글이 존재하지 않습니다."));
+                .orElseThrow(CommentNotFoundException::new);
 
         comment.changeType(type);
+    }
+
+    private Comment findParentInSameFeed(Long feedId, Long parentId) {
+        return commentRepository.findByIdAndFeedId(parentId, feedId)
+                .orElseThrow(CommentNotFoundException::new);
     }
 }

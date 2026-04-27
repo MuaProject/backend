@@ -2,15 +2,16 @@ package Mua.Mua_backend.domain.comment.entity;
 
 import Mua.Mua_backend.domain.feed.entity.Feed;
 import Mua.Mua_backend.domain.member.entity.Member;
-import Mua.Mua_backend.domain.participation.entity.ParticipationStatus;
 import Mua.Mua_backend.global.common.BaseTimeEntity;
+import Mua.Mua_backend.global.exception.comment.CommentDeleteForbiddenException;
+import Mua.Mua_backend.global.exception.comment.CommentFeedMismatchException;
+import Mua.Mua_backend.global.exception.comment.EventCommentDeleteNotAllowedException;
+import Mua.Mua_backend.global.exception.comment.InvalidCommentReplyException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(
@@ -39,7 +40,7 @@ public class Comment extends BaseTimeEntity {
     private Integer depth;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "comment_type",nullable = false)
+    @Column(name = "comment_type", nullable = false)
     private CommentType commentType;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -75,24 +76,45 @@ public class Comment extends BaseTimeEntity {
         this.participationId = participationId;
     }
 
-    // USER 댓글 생성
-    public static Comment createUserComment(
+    public static Comment createRootComment(
             String description,
             Feed feed,
-            Member member,
-            Long parentId
+            Member member
     ) {
         return Comment.builder()
                 .description(description)
-                .parentId(parentId)
-                .depth(parentId == null ? 0 : 1)
+                .parentId(null)
+                .depth(0)
                 .commentType(CommentType.USER)
                 .member(member)
                 .feed(feed)
                 .build();
     }
 
-    // SYSTEMEVENT 댓글 생성
+    public static Comment createReplyComment(
+            String description,
+            Feed feed,
+            Member member,
+            Comment parent
+    ) {
+        parent.assertCanBeReplyParent();
+
+        return Comment.builder()
+                .description(description)
+                .parentId(parent.getId())
+                .depth(parent.getDepth() + 1)
+                .commentType(CommentType.USER)
+                .member(member)
+                .feed(feed)
+                .build();
+    }
+
+    public void assertCanBeReplyParent() {
+        if(this.depth != 0) {
+            throw new InvalidCommentReplyException();
+        }
+    }
+
     public static Comment createEventComment(
             String description,
             Feed feed,
@@ -110,12 +132,34 @@ public class Comment extends BaseTimeEntity {
                 .build();
     }
 
-    public void delete() {
+    public void deleteBy(Long memberId) {
+        assertDeletableBy(memberId);
+        markDeleted();
+    }
+
+    public void assertDeletableBy(Long memberId) {
+        assertUserComment();
+        assertOwnedBy(memberId);
+    }
+
+    private void markDeleted() {
         this.isDeleted = true;
         this.description = "삭제된 댓글입니다.";
     }
 
     public void changeType(CommentType type) {
         this.commentType = type;
+    }
+
+    private void assertUserComment() {
+        if (commentType != CommentType.USER) {
+            throw new EventCommentDeleteNotAllowedException();
+        }
+    }
+
+    private void assertOwnedBy(Long memberId) {
+        if (!member.getId().equals(memberId)) {
+            throw new CommentDeleteForbiddenException();
+        }
     }
 }
